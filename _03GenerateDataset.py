@@ -4,7 +4,7 @@
 @Time    : 2019/12/11 9:35
 """
 import os,glob
-LabelPaths = glob.glob('OriLabelDataset/*.json')
+LabelPaths = glob.glob('./OriLabelDataset/*.json')
 
 for LabelPath in LabelPaths:
 	print(LabelPath)
