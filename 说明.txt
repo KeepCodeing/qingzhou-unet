@@ -1,0 +1,14 @@
+（1）正常图像映射
+	a.将采集的待标注图像拷贝至OirImage;
+	b.运行_02WarpMain.py；
+	c.在WarpedImg文件夹中得到映射后的图像.
+	
+（2）标注图像，生成训练数据
+	a.在WarpedImg图片基础上，使用Labelme进行标注；
+	b.标注图像和标签拷贝至OriLabelDataset；
+	c.运行_03GenerateDataset.py，得到适用于神经网络训练的标签数据.
+	
+（3）训练；
+	a.将步骤（2）生成标签数据全部拷贝至Dataset\Train下，同时Val文件夹下也需要随机拷贝几个；
+	b.在_04Training路径下运行_02TrainMain.py即可实现神经网络训练；
+	c.训练结束后，在_04Training\Output下得到700.pt,这个就是最终得到神经网络模型，可用于车道线检测。
