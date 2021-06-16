@@ -21,7 +21,7 @@ torch.cuda.set_device(0)  # 选用GPU设备
 
 # %% TODO:载入数据，初始化网络，定义目标函数
 FolderPath = '../Dataset'
-TrainDataset, TrainDataLoader, ValDataset, ValDataLoader = PipeDatasetLoader(FolderPath, BatchSize)
+TrainDataset, TrainDataLoader, ValDataset, ValDataLoader = PipeDatasetLoader(FolderPath, BatchSize, False)
 # %% Unet_BCELoss_Adam
 Unet = UNet(in_channels=3, out_channels=1, init_features=4, WithActivateLast=True, ActivateFunLast = torch.sigmoid).to('cuda')
 SaveFolder = 'Output'
@@ -54,6 +54,7 @@ for Epoch in range(1, Epochs + 1):
 			BatchLoss.backward()
 			Optimizer.step()
 			TrainLoss += BatchLoss.item()
+			print(OutputImg.shape)
 	AveTrainLoss = TrainLoss / TrainDataset.__len__() * BatchSize  # 平均每幅图像的loss
 	print(", Total loss is: %.6f" % float(AveTrainLoss))
 	logging.warning('\tTrain\tEpoch:{0:04d}\tLearningRate:{1:08f}\tLoss:{2:08f}'.format(Epoch, LrScheduler.get_lr()[0], AveTrainLoss))
@@ -74,15 +75,21 @@ for Epoch in range(1, Epochs + 1):
 				OutputImg = Unet(InputImg)
 				BatchLoss = Criterion(OutputImg, Label)  # CrossEntropyLoss的Target必须没有通道的维度，即(BatchSize, W, H)
 				ValLoss += BatchLoss.item()
+
+				# pred = np.array(OutputImg.data.cpu()[0])[0]
+				# pred = (Normalization(pred) * 255).astype(np.uint8)
+				# pred = cv2.cvtColor(pred, cv2.COLOR_GRAY2RGB)
+				# plt.imshow(pred)
+				# plt.show()
+
 		AveValLoss = ValLoss / ValDataset.__len__()
 		print("Total loss is: %.6f" % float(AveValLoss))
 		logging.warning('\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tValid\tEpoch:{0:04d}\tLearningRate:{1:08f}\tLoss:{2:08f}'.format(Epoch, LrScheduler.get_lr()[0], AveValLoss))
 
 	# %% 保存
 	if Epoch % SavePerEpoch == 0:
-		torch.save(Unet.state_dict(), os.path.join(SaveFolder, '{0:04d}.pt'.format(Epoch)))
+		torch.save(Unet.state_dict(), os.path.join(SaveFolder, '{0:04d}_dict.pt'.format(Epoch)))
 		torch.save(Unet, os.path.join(SaveFolder, '{0:04d}.pt'.format(Epoch)))
 
 	# %% 每隔一定epoch后更新一次学习率
 	LrScheduler.step()
-
